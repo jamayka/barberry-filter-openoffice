@@ -3,7 +3,7 @@ namespace Barberry\Filter;
 use Barberry;
 use Barberry\Test;
 
-include_once dirname(dirname(dirname(__DIR__))) . '/externals/Tbs/tbs_class.php';
+include_once dirname(__DIR__) . '/externals/Tbs/tbs_class.php';
 
 class OpenOfficeTemplateTest extends \PHPUnit_Framework_TestCase {
 
