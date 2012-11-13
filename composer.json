@@ -1,0 +1,17 @@
+{
+    "name": "barberry/filter-openoffice",
+    "type": "barberry-filter",
+    "require": {
+        "barberry/barberry": "*"
+    },
+    "minimum-stability": "dev",
+    "authors": [
+        {
+            "name": "Alexey Khokhryakov",
+            "email": "alexey@xiag.ch"
+        }
+    ],
+    "autoload": {
+        "psr-0": {"Barberry\\Filter": "src/"}
+    }
+}
