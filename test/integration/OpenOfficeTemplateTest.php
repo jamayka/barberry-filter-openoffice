@@ -23,6 +23,6 @@ class OpenOfficeTemplateIntegrationTest extends \PHPUnit_Framework_TestCase {
 //--------------------------------------------------------------------------------------------------
 
     private static function p() {
-        return new OpenOfficeTemplate(new \clsTinyButStrong, '/tmp/');
+        return new OpenOfficeTemplate('/tmp/');
     }
 }

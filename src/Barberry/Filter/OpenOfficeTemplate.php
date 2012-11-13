@@ -18,9 +18,13 @@ class OpenOfficeTemplate implements FilterInterface {
      */
     private $tempPath;
 
-    public function __construct(\clsTinyButStrong $tbs, $tempPath) {
-        $this->tbs = $tbs;
+    public function __construct($tempPath, \clsTinyButStrong $tbs = null) {
         $this->tempPath = $tempPath;
+        $this->tbs = $tbs;
+
+        if (is_null($this->tbs)) {
+            $this->tbs = new \clsTinyButStrong;
+        }
     }
 
     /**
@@ -35,34 +39,35 @@ class OpenOfficeTemplate implements FilterInterface {
 
         $file = array_shift($allFiles);
 
-        if (strlen($file->bin)) {
-            $this->tbs->PlugIn(TBS_INSTALL, OPENTBS_PLUGIN);
-            $tempFileName = $this->toTempFileWithExt($file->bin);
-            $this->tbs->LoadTemplate($tempFileName, OPENTBS_ALREADY_UTF8);
-
-            $tempFileNames = $this->savePostedFilesWithExtensions($allFiles);
-            $vars += $tempFileNames;
-
-            $this->tbs->VarRef = $vars;
-
-            foreach ($vars as $key => $val) {
-                if (is_array($val)) {
-                    $this->tbs->MergeBlock($key, !empty($val[0]) ? $val : array());
-                } else {
-                    $this->tbs->MergeField($key, $val);
-                }
-            }
-
-            $this->tbs->Show(OPENTBS_STRING);
-
-            foreach ($tempFileNames as $filename) {
-                unlink($filename);
-            }
-            unlink($tempFileName);
-
-            return new \Barberry\PostedFile($this->tbs->Source, $file->filename);
+        if (!strlen($file->bin) || !$this->isContentTypeSupported($file->bin)) {
+            return null;
         }
-        return $file;
+
+        $this->tbs->PlugIn(TBS_INSTALL, OPENTBS_PLUGIN);
+        $tempFileName = $this->toTempFileWithExt($file->bin);
+        $this->tbs->LoadTemplate($tempFileName, OPENTBS_ALREADY_UTF8);
+
+        $tempFileNames = $this->savePostedFilesWithExtensions($allFiles);
+        $vars += $tempFileNames;
+
+        $this->tbs->VarRef = $vars;
+
+        foreach ($vars as $key => $val) {
+            if (is_array($val)) {
+                $this->tbs->MergeBlock($key, !empty($val[0]) ? $val : array());
+            } else {
+                $this->tbs->MergeField($key, $val);
+            }
+        }
+
+        $this->tbs->Show(OPENTBS_STRING);
+
+        foreach ($tempFileNames as $filename) {
+            unlink($filename);
+        }
+        unlink($tempFileName);
+
+        return new \Barberry\PostedFile($this->tbs->Source, $file->filename);
     }
 
 //--------------------------------------------------------------------------------------------------
@@ -85,6 +90,10 @@ class OpenOfficeTemplate implements FilterInterface {
         $filename = tempnam($this->tempPath, 'ooparser_') . '.' . ContentType::byString($template)->standartExtention();
         file_put_contents($filename, $template);
         return $filename;
+    }
+
+    private function isContentTypeSupported($bin) {
+        return in_array(ContentType::byString($bin)->standartExtention(), array('ott', 'odt', 'ots'));
     }
 
 }

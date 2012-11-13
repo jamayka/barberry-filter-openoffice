@@ -28,7 +28,7 @@ class OpenOfficeTemplateTest extends \PHPUnit_Framework_TestCase {
             array(
                 'arrayKey' => array('anyarray')
             ),
-            array(new \Barberry\PostedFile('[]'))
+            array(new \Barberry\PostedFile(Test\Data::ottTemplate()))
         );
     }
 
@@ -38,23 +38,34 @@ class OpenOfficeTemplateTest extends \PHPUnit_Framework_TestCase {
             'fieldKey', 'fieldValue'
         );
 
-        self::p($tbs)->filter(array('fieldKey' => 'fieldValue'), array(new \Barberry\PostedFile('[]')));
-
+        self::p($tbs)->filter(
+            array('fieldKey' => 'fieldValue'),
+            array(new \Barberry\PostedFile(Test\Data::ottTemplate()))
+        );
     }
 
     public function testLoadsFilesIntoTinyButStrongParser() {
         $tbs = $this->getMockBuilder('clsTinyButStrong')->disableOriginalConstructor()->getMock();
         $tbs->expects($this->once())
             ->method('MergeField')
-            ->with('image', $this->logicalAnd($this->stringStartsWith('/tmp/ooparser_'), $this->stringEndsWith('.gif')));
+            ->with(
+                'image',
+                $this->logicalAnd($this->stringStartsWith('/tmp/ooparser_'), $this->stringEndsWith('.gif'))
+            );
 
         $p = self::p($tbs);
         $p->filter(
             array(),
             array(
-                'file' => new \Barberry\PostedFile('[]'),
+                'file' => new \Barberry\PostedFile(Test\Data::ottTemplate()),
                 'image' => new \Barberry\PostedFile(Test\Data::gif1x1(), 'test.gif')
             )
+        );
+    }
+
+    public function testReturnsNullIfUnsupportedContentTypeIsPassed() {
+        $this->assertNull(
+            self::p()->filter(array(), array('image' => new \Barberry\PostedFile(Test\Data::gif1x1(), 'test.gif')))
         );
     }
 
@@ -62,8 +73,8 @@ class OpenOfficeTemplateTest extends \PHPUnit_Framework_TestCase {
 
     private static function p($tbs = null, $tempPath = null) {
         return new OpenOfficeTemplate(
-            $tbs ?: Test\Stub::create('clsTinyButStrong'),
-            $tempPath ?: ''
+            $tempPath ?: '',
+            $tbs ?: Test\Stub::create('clsTinyButStrong')
         );
     }
 }
