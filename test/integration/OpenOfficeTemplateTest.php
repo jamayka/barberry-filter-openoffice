@@ -7,17 +7,22 @@ class OpenOfficeTemplateIntegrationTest extends \PHPUnit_Framework_TestCase {
     const PARSED_DOCUMENT_SIZE = 8369;
 
     public function testFiltersSpreadSheet() {
-        $result = self::p()->filter(
+        $files = new \Barberry\PostedFile\Collection(
+            array('file' => new \Barberry\PostedFile(Test\Data::otsTemplate(), 'test.ots'))
+        );
+
+        self::p()->filter(
+            $files,
             array(
                 'd' => array(
                     array('id' => 1),
                     array('id' => 2),
                 ),
                 'message' => 'Maxim was here'
-            ),
-            array('file' => new \Barberry\PostedFile(Test\Data::otsTemplate()))
+            )
         );
-        $this->assertEquals(self::PARSED_DOCUMENT_SIZE, strlen($result->bin));
+
+        $this->assertEquals(self::PARSED_DOCUMENT_SIZE, strlen($files['file']->bin));
     }
 
 //--------------------------------------------------------------------------------------------------

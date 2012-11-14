@@ -12,23 +12,19 @@ class OpenOfficeTemplateTest extends \PHPUnit_Framework_TestCase {
     }
 
     public function testSurvivesEmptyTemplate() {
-        self::p()->filter(array());
+        self::p()->filter(new \Barberry\PostedFile\Collection(), array());
     }
 
     public function testLoadsBlockVariablesIntoTinyButStrongParser() {
         $tbs = $this->getMockBuilder('clsTinyButStrong')->disableOriginalConstructor()->getMock();
         $tbs->expects($this->once())->method('MergeBlock')->with(
             'arrayKey',
-            array(
-                'anyarray'
-            )
+            array('anyarray')
         );
 
         self::p($tbs)->filter(
-            array(
-                'arrayKey' => array('anyarray')
-            ),
-            array(new \Barberry\PostedFile(Test\Data::ottTemplate()))
+            new \Barberry\PostedFile\Collection(array('file' => new \Barberry\PostedFile(Test\Data::ottTemplate()))),
+            array('arrayKey' => array('anyarray'))
         );
     }
 
@@ -39,8 +35,8 @@ class OpenOfficeTemplateTest extends \PHPUnit_Framework_TestCase {
         );
 
         self::p($tbs)->filter(
-            array('fieldKey' => 'fieldValue'),
-            array(new \Barberry\PostedFile(Test\Data::ottTemplate()))
+            new \Barberry\PostedFile\Collection(array('file' => new \Barberry\PostedFile(Test\Data::ottTemplate()))),
+            array('fieldKey' => 'fieldValue')
         );
     }
 
@@ -55,18 +51,24 @@ class OpenOfficeTemplateTest extends \PHPUnit_Framework_TestCase {
 
         $p = self::p($tbs);
         $p->filter(
-            array(),
-            array(
-                'file' => new \Barberry\PostedFile(Test\Data::ottTemplate()),
-                'image' => new \Barberry\PostedFile(Test\Data::gif1x1(), 'test.gif')
-            )
+            new \Barberry\PostedFile\Collection(
+                array(
+                    'file' => new \Barberry\PostedFile(Test\Data::ottTemplate()),
+                    'image' => new \Barberry\PostedFile(Test\Data::gif1x1(), 'test.gif')
+                )
+            ),
+            array()
         );
     }
 
-    public function testReturnsNullIfUnsupportedContentTypeIsPassed() {
-        $this->assertNull(
-            self::p()->filter(array(), array('image' => new \Barberry\PostedFile(Test\Data::gif1x1(), 'test.gif')))
+    public function testDoesNotChangeFilesIfUnsupportedContentTypeIsPassed() {
+        $files = new \Barberry\PostedFile\Collection(
+            array('image' => new \Barberry\PostedFile(Test\Data::gif1x1(), 'test.gif'))
         );
+
+        self::p()->filter($files, array());
+
+        $this->assertEquals(new \Barberry\PostedFile(Test\Data::gif1x1(), 'test.gif'), $files['image']);
     }
 
 //--------------------------------------------------------------------------------------------------

@@ -28,33 +28,31 @@ class OpenOfficeTemplate implements FilterInterface {
     }
 
     /**
+     * @param \Barberry\PostedFile\Collection $allFiles
      * @param array $vars
-     * @param \Barberry\PostedFile[] $allFiles
-     * @return \Barberry\PostedFile
+     * @return void
      */
-    public function filter(array $vars, array $allFiles = array()) {
-        if (empty($allFiles)) {
-            return null;
-        }
+    public function filter(\Barberry\PostedFile\Collection $allFiles, array $vars) {
+        $allFiles->rewind();
+        $fileKey = $allFiles->key();
+        $file = $allFiles->current();
 
-        $file = array_shift($allFiles);
-
-        if (!strlen($file->bin) || !$this->isContentTypeSupported($file->bin)) {
-            return null;
+        if (is_null($file) || !strlen($file->bin) || !$this->isContentTypeSupported($file->bin)) {
+            return;
         }
 
         $this->tbs->PlugIn(TBS_INSTALL, OPENTBS_PLUGIN);
-        $tempFileName = $this->toTempFileWithExt($file->bin);
+        $tempFileName = $this->toTempFileWithExt($file);
         $this->tbs->LoadTemplate($tempFileName, OPENTBS_ALREADY_UTF8);
 
-        $tempFileNames = $this->savePostedFilesWithExtensions($allFiles);
+        $tempFileNames = $this->savePostedFilesWithExtensions($allFiles, $fileKey);
         $vars += $tempFileNames;
 
         $this->tbs->VarRef = $vars;
 
         foreach ($vars as $key => $val) {
             if (is_array($val)) {
-                $this->tbs->MergeBlock($key, !empty($val[0]) ? $val : array());
+                $this->tbs->MergeBlock($key, isset($val[0]) ? $val : array());
             } else {
                 $this->tbs->MergeField($key, $val);
             }
@@ -67,28 +65,31 @@ class OpenOfficeTemplate implements FilterInterface {
         }
         unlink($tempFileName);
 
-        return new \Barberry\PostedFile($this->tbs->Source, $file->filename);
+        $allFiles[$fileKey] = new \Barberry\PostedFile($this->tbs->Source, $file->filename);
     }
 
 //--------------------------------------------------------------------------------------------------
 
     /**
-     * @param \Barberry\PostedFile[] $files
+     * @param \Barberry\PostedFile\Collection $files
+     * @param string $skipName
      * @return array
      */
-    private function savePostedFilesWithExtensions($files) {
+    private function savePostedFilesWithExtensions(\Barberry\PostedFile\Collection $files, $skipName) {
         $filenames = array();
 
         foreach ($files as $name => $file) {
-            $filenames[$name] = $this->toTempFileWithExt($file->bin);
+            if ($skipName !== $name) {
+                $filenames[$name] = $this->toTempFileWithExt($file);
+            }
         }
 
         return $filenames;
     }
 
-    private function toTempFileWithExt($template) {
-        $filename = tempnam($this->tempPath, 'ooparser_') . '.' . ContentType::byString($template)->standartExtention();
-        file_put_contents($filename, $template);
+    private function toTempFileWithExt(\Barberry\PostedFile $file) {
+        $filename = tempnam($this->tempPath, 'ooparser_') . '.' . $file->getStandardExtension();
+        file_put_contents($filename, $file->bin);
         return $filename;
     }
 
