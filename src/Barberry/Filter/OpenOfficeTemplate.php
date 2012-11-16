@@ -25,6 +25,8 @@ class OpenOfficeTemplate implements FilterInterface {
         if (is_null($this->tbs)) {
             $this->tbs = new \clsTinyButStrong;
         }
+
+        $this->tbs->SetOption('noerr', true);
     }
 
     /**
@@ -37,7 +39,7 @@ class OpenOfficeTemplate implements FilterInterface {
         $fileKey = $allFiles->key();
         $file = $allFiles->current();
 
-        if (is_null($file) || !strlen($file->bin) || !$this->isContentTypeSupported($file->bin)) {
+        if (is_null($file) || !strlen($file->bin) || !$this->isContentTypeSupported($file->bin) || empty($vars)) {
             return;
         }
 
