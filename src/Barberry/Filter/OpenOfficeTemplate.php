@@ -39,7 +39,12 @@ class OpenOfficeTemplate implements FilterInterface {
         $fileKey = $allFiles->key();
         $file = $allFiles->current();
 
-        if (is_null($file) || !strlen($file->bin) || !$this->isContentTypeSupported($file->bin) || empty($vars)) {
+        $vars = $this->getVars($allFiles, $vars);
+
+        if (is_null($file) || !strlen($file->bin) || !$this->isContentTypeSupported($file->bin)) {
+            return;
+        }
+        if (empty($vars) && $this->noOtherFiles($allFiles, $fileKey)) {
             return;
         }
 
@@ -97,6 +102,30 @@ class OpenOfficeTemplate implements FilterInterface {
 
     private function isContentTypeSupported($bin) {
         return in_array(ContentType::byString($bin)->standartExtention(), array('ott', 'odt', 'ots'));
+    }
+
+    private function getVars(\Barberry\PostedFile\Collection $allFiles, array $vars) {
+        $varsJsonFile = $allFiles['templateVars'];
+        if (!is_null($varsJsonFile)) {
+            unset($allFiles['templateVars']);
+
+            $varsFromFile = json_decode($varsJsonFile->bin, true);
+            if (is_array($varsFromFile)) {
+                return array_merge($vars, $varsFromFile);
+            }
+        }
+
+        return $vars;
+    }
+
+    private function noOtherFiles(\Barberry\PostedFile\Collection $files, $skipName) {
+        foreach ($files as $name => $file) {
+            if ($skipName !== $name) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
 }

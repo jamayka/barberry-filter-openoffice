@@ -71,6 +71,26 @@ class OpenOfficeTemplateTest extends \PHPUnit_Framework_TestCase {
         $this->assertEquals(new \Barberry\PostedFile(Test\Data::gif1x1(), 'test.gif'), $files['image']);
     }
 
+    public function testLoadsFieldVariablesIntoTinyButStrongParserFromJson() {
+        $tbs = $this->getMockBuilder('clsTinyButStrong')->disableOriginalConstructor()->getMock();
+        $tbs->expects($this->once())->method('MergeField')->with(
+            'fieldKey', 'fieldValue'
+        );
+
+        self::p($tbs)->filter(
+            new \Barberry\PostedFile\Collection(
+                array(
+                    'file' => new \Barberry\PostedFile(Test\Data::ottTemplate()),
+                    'templateVars' => new \Barberry\PostedFile(
+                        json_encode(array('fieldKey' => 'fieldValue')),
+                        'vars.json'
+                    )
+                )
+            ),
+            array()
+        );
+    }
+
 //--------------------------------------------------------------------------------------------------
 
     private static function p($tbs = null, $tempPath = null) {
