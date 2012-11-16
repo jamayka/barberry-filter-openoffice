@@ -55,7 +55,7 @@ class OpenOfficeTemplate implements FilterInterface {
         $tempFileNames = $this->savePostedFilesWithExtensions($allFiles, $fileKey);
         $vars += $tempFileNames;
 
-        $this->tbs->VarRef = $vars;
+        $this->tbs->VarRef = array('res' => $vars);
 
         foreach ($vars as $key => $val) {
             if (is_array($val)) {
