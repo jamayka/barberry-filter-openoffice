@@ -101,7 +101,7 @@ class OpenOfficeTemplate implements FilterInterface {
     }
 
     private function isContentTypeSupported($bin) {
-        return in_array(ContentType::byString($bin)->standartExtention(), array('ott', 'odt', 'ots'));
+        return in_array(ContentType::byString($bin)->standardExtension(), array('ott', 'odt', 'ots'));
     }
 
     private function getVars(\Barberry\PostedFile\Collection $allFiles, array $vars) {
